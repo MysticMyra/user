@@ -1,5 +1,6 @@
 package com.ega.user.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sun.istack.NotNull;
 import lombok.*;
@@ -15,21 +16,23 @@ public class Account {
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Long accountId;
 
-    @ManyToOne
-    @JoinColumn(name ="user_id")
-    @JsonIgnoreProperties({ "hibernateLazyInitializer" })
+    @JsonIgnore
+    @OneToOne(mappedBy = "account")
+    @JoinColumn(name = "user_id")
     private User user;
 
-    private String accountNumber;
-   private  Long currentBalance;
+    private Long accountNumber;
+    private Long currentBalance;
     private Timestamp transactionDateTime;
     private String transactionDescription;
-private String transferType;
+    private String transferType;
 
     public Account() {
     }
 
-    public Account(Long accountId, User user, String accountNumber, Long currentBalance, Timestamp transactionDateTime, String transactionDescription, String transferType) {
+
+
+    public Account(Long accountId, User user, Long accountNumber, Long currentBalance, Timestamp transactionDateTime, String transactionDescription, String transferType) {
         this.accountId = accountId;
         this.user = user;
         this.accountNumber = accountNumber;
@@ -47,19 +50,11 @@ private String transferType;
         this.accountId = accountId;
     }
 
-    public User getUserId() {
-        return user;
-    }
-
-    public void setUserId(User userId) {
-        this.user = userId;
-    }
-
-    public String getAccountNumber() {
+    public Long getAccountNumber() {
         return accountNumber;
     }
 
-    public void setAccountNumber(String accountNumber) {
+    public void setAccountNumber(Long accountNumber) {
         this.accountNumber = accountNumber;
     }
 
@@ -78,7 +73,6 @@ private String transferType;
     public void setUser(User user) {
         this.user = user;
     }
-
     public Timestamp getTransactionDateTime() {
         return transactionDateTime;
     }

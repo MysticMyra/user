@@ -1,4 +1,6 @@
 package com.ega.user.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 
 @Entity
@@ -6,6 +8,7 @@ import javax.persistence.*;
 public class User {
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
+    @Column(name = "userId")
     private Long userId;
     private String firstName;
     private String lastName;
@@ -17,11 +20,16 @@ public class User {
     private String state;
     private String country;
     private String pincode;
+    private Long accountNumber;
+    @OneToOne
+    @JsonIgnore
+    @JoinColumn(name = "account_id")
+    private Account account;
 
     public User() {
     }
 
-    public User(Long userId, String firstName, String lastName, String loginName, String password, String email, String contactNumber, String address, String state, String country, String pincode) {
+    public User(Long userId, String firstName, String lastName, String loginName, String password, String email, String contactNumber, String address, String state, String country, String pincode, Long accountNumber, Account account) {
         this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -33,6 +41,8 @@ public class User {
         this.state = state;
         this.country = country;
         this.pincode = pincode;
+        this.accountNumber = accountNumber;
+        this.account = account;
     }
 
     public Long getUserId() {
@@ -123,5 +133,19 @@ public class User {
         this.pincode = pincode;
     }
 
+    public Long getAccountNumber() {
+        return accountNumber;
+    }
 
+    public void setAccountNumber(Long accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
+    }
 }

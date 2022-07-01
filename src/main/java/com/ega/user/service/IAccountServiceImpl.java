@@ -24,10 +24,6 @@ public class IAccountServiceImpl implements IAccountService {
 
 
 
-    public Account findByAccountNumber(String accountNumber) {
-        Account account = accountRepository.findByAccountNumberEquals(accountNumber);
-        return account;
-    }
 
 /*
     @Override

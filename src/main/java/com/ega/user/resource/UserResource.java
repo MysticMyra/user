@@ -1,9 +1,11 @@
 package com.ega.user.resource;
 
 
+import com.ega.user.model.Account;
 import com.ega.user.model.User;
 import com.ega.user.model.UserDTO;
 import com.ega.user.repository.UserRepository;
+import com.ega.user.service.IAccountService;
 import com.ega.user.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.security.AccessControlContext;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +28,9 @@ public class UserResource {
     IUserService iUserService;
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    IAccountService iAccountService;
 
     @GetMapping(value = "/users")
     public List<User> retrieveAllUsers() {
@@ -59,11 +65,11 @@ public class UserResource {
     public ResponseEntity<Void> adduserInfo(@RequestBody() UserDTO UserDTO) {
 
         User user = new User();
-
+        long userId = 0;
         if (UserDTO.getUserId() == null || UserDTO.getUserId().equals("")) {
-            long id = iUserService.getAllUsers().size() + 1;
-            System.out.println("User ID"+id);
-            user.setUserId(id);
+            userId = iUserService.getAllUsers().size() + 1;
+            System.out.println("User ID"+userId);
+            user.setUserId(userId);
         }
         if (UserDTO.getFirstName() == null || UserDTO.getFirstName().isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -108,7 +114,21 @@ public class UserResource {
         user.setCountry(UserDTO.getCountry());
         user.setPincode(UserDTO.getPincode());
 
+        Long generatedAccountNumber= (long) Math.floor(Math.random() * 9_000_000_000L) + 1_000_000_000L;
+        user.setAccountNumber(generatedAccountNumber);
+
+        Account account = Account.builder()
+                .accountNumber(generatedAccountNumber)
+                .currentBalance(0l)
+                .build();
+
+        account.setUser(user);
+        user.setAccount(account);
+        iAccountService.save(account);
         iUserService.save(user);
+
+        System.out.println("-----------> account"+account.getAccountNumber()+" -"+ account.getCurrentBalance());
+
 
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(UserDTO.getUserId())
                 .toUri();

@@ -23,7 +23,7 @@ import java.util.Optional;
 @RequestMapping("/api")
 public class AccountResource {
     @Autowired
-    private IAccountService accountService;
+    private IAccountService iAccountService;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -31,51 +31,29 @@ public class AccountResource {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping(value = "/generateAccountNumber")
-    public String generateAccountNumber() {
-       // Long newAccountNumber= accountRepository.getMaxAccountNumber()+1;
-        Long newAccountNumber= (long) Math.floor(Math.random() * 9_000_000_000L) + 1_000_000_000L;
-        System.out.println("-------------max account number--->"+newAccountNumber);
-       return newAccountNumber.toString();
-    }
-
-    @PostMapping("/createAccount")
-    public ResponseEntity<Void> createAccount(@RequestBody() AccountDTO accountDTO) {
-
-        Optional<User> user = Optional.empty();
-        Account account = new Account();
-
-        if (accountDTO.getAccountId()== null || accountDTO.getAccountId().equals("")) {
-            long id = accountService.getAllAccounts().size() + 1;
-            System.out.println("New Account id"+id);
-            account.setAccountId(id);
-        }
-
-            account.setAccountNumber(generateAccountNumber());
-        if(accountDTO.getUser() != null){
-            user = userRepository.findById(accountDTO.getUser().getUserId());
-            if(user.isPresent()){
-                accountDTO.setUser(user.get());
-            }
-        }
-        account.setCurrentBalance(0l);
-        account.setTransactionDateTime(null);
-        account.setTransferType(null);
-        account.setTransactionDescription(null);
-
-        accountService.save(account);
-
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(accountDTO.getAccountId())
-                .toUri();
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.setLocation(uri);
-
-        return new ResponseEntity(account, responseHeaders, HttpStatus.CREATED);
-    }
-//    @RequestMapping("/all")
-//    public List<Account> all() {
-//        return accountService.findAll();
+//    @GetMapping(value = "/getUserAccount")
+//    public Account getAccountDetail() {
+//
+//      //  iAccountService
+//        //iAc.getAllUsers().stream().forEach(System.out::println);
+//        return iUserService.getAllUsers();
 //    }
+
+    @GetMapping("/account/{accountNumber}")
+    public ResponseEntity<Account> getAccountByAccountNumber(@PathVariable(required = true) Long accountNumber){
+
+        Optional<Account> account = accountRepository.findByAccountNumberEquals(accountNumber);
+
+        if(account.isEmpty()){
+            return  new ResponseEntity("Account do not exists in Database", HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity(account, HttpStatus.ACCEPTED);
+    }
+
+
+
+
 
 //    @RequestMapping("/sendmoney")
 //    public Response sendMoney(
