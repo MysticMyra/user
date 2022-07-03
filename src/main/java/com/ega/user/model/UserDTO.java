@@ -1,7 +1,5 @@
 package com.ega.user.model;
 
-
-
 public class UserDTO {
     private Long userId;
     private String firstName;
@@ -119,7 +117,6 @@ public class UserDTO {
     public void setPincode(String pincode) {
         this.pincode = pincode;
     }
-
 
 
     @Override

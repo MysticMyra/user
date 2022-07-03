@@ -1,9 +1,11 @@
 package com.ega.user.resource;
 
 
+import com.ega.user.model.Account;
 import com.ega.user.model.User;
 import com.ega.user.model.UserDTO;
 import com.ega.user.repository.UserRepository;
+import com.ega.user.service.IAccountService;
 import com.ega.user.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +28,9 @@ public class UserResource {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    IAccountService iAccountService;
+
     @GetMapping(value = "/users")
     public List<User> retrieveAllUsers() {
         iUserService.getAllUsers().stream().forEach(System.out::println);
@@ -33,37 +38,39 @@ public class UserResource {
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable(required = true) Long id){
+    public ResponseEntity<User> getUserById(@PathVariable(required = true) Long id) {
 
         Optional<User> user = iUserService.findById(id);
 
-        if(user.isEmpty()){
-            return  new ResponseEntity("User not found in Database", HttpStatus.NOT_FOUND);
+        if (user.isEmpty()) {
+            return new ResponseEntity("User not found in Database", HttpStatus.NOT_FOUND);
         }
 
         return new ResponseEntity(user, HttpStatus.ACCEPTED);
     }
+
     @GetMapping("/users/find")
-    public ResponseEntity<User> getUserByLoginName(@RequestParam("loginName")  String loginName){
+    public ResponseEntity<User> getUserByLoginName(@RequestParam("loginName") String loginName) {
 
         Optional<User> user = userRepository.findByLoginName(loginName);
         //http://localhost:9091/api/users/find?loginName=john.doe
 
-        if(user.isEmpty()){
-            return  new ResponseEntity("User not found in Database", HttpStatus.NOT_FOUND);
+        if (user.isEmpty()) {
+            return new ResponseEntity("User not found in Database", HttpStatus.NOT_FOUND);
         }
 
         return new ResponseEntity(user, HttpStatus.ACCEPTED);
     }
+
     @PostMapping("/addUser")
     public ResponseEntity<Void> adduserInfo(@RequestBody() UserDTO UserDTO) {
 
         User user = new User();
-
+        long userId = 0;
         if (UserDTO.getUserId() == null || UserDTO.getUserId().equals("")) {
-            long id = iUserService.getAllUsers().size() + 1;
-            System.out.println("User ID"+id);
-            user.setUserId(id);
+            userId = iUserService.getAllUsers().size() + 1;
+            System.out.println("User ID" + userId);
+            user.setUserId(userId);
         }
         if (UserDTO.getFirstName() == null || UserDTO.getFirstName().isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -108,7 +115,19 @@ public class UserResource {
         user.setCountry(UserDTO.getCountry());
         user.setPincode(UserDTO.getPincode());
 
+        Long generatedAccountNumber = (long) Math.floor(Math.random() * 9_000_000_000L) + 1_000_000_000L;
+        user.setAccountNumber(generatedAccountNumber);
+        System.out.println("generated account number -->" + generatedAccountNumber);
+        Account account = Account.builder()
+                .accountNumber(generatedAccountNumber)
+                .currentBalance(0l)
+                .build();
+
+        account.setUser(user);
+        user.setAccount(account);
+        iAccountService.save(account);
         iUserService.save(user);
+
 
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(UserDTO.getUserId())
                 .toUri();
@@ -117,9 +136,4 @@ public class UserResource {
 
         return new ResponseEntity(user, responseHeaders, HttpStatus.CREATED);
     }
-
-//    @RequestMapping("/{userId}")
-//    public User getUserInfo(@PathVariable("userId")String userId){
-//        return new User(userId, "Mah");
-//    }
 }
