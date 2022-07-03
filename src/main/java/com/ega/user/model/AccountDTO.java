@@ -7,7 +7,7 @@ public class AccountDTO {
     private Long accountId;
     private User user;
     private String accountNumber;
-    private  Long currentBalance;
+    private Long currentBalance;
     private Timestamp transactionDateTime;
     private String transactionDescription;
     private String transferType;
